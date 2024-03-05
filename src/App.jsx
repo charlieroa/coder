@@ -1,19 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import NavBar from './components/Navbar/NavBar'
-import ItemLisContainer from './components/ItemListContainer/ItemLisContainer'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
+import NavBar from './components/Navbar/NavBar';
+import ItemDetailContainer from './components/ItemDetailContainer/ItemDetailContainer';
+import { CartProvider } from './contexts/CartContext';
+import ItemLisContainer from './components/ItemListContainer/ItemLisContainer';
+
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-    <NavBar/>
-    <ItemLisContainer />
-    </>
-  )
+    <CartProvider>
+      <Router>
+        <>
+          <NavBar />
+          <Routes>
+          <Route path="/" element={<ItemLisContainer/>} />
+           <Route path="/detalle/:itemId" element={<ItemDetailContainer />} />           
+          </Routes>
+        </>
+      </Router>
+    </CartProvider>
+  );
 }
 
-export default App
+export default App;

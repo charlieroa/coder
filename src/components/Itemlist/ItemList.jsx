@@ -1,10 +1,9 @@
-import React from 'react'
-import { Fragment, useState } from 'react'
-import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid'
-import Items from '../Items/Items'
-
+import React, { Fragment, useState, useEffect } from 'react'; // Asegúrate de incluir useEffect aquí
+import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react';
+import { XMarkIcon, ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
+import Items from '../Items/Items';
+import { obtenerCamisetas } from '../../services/services';
+import { Link } from 'react-router-dom';
 
 const sortOptions = [
     { name: 'Most Popular', href: '#', current: true },
@@ -59,7 +58,20 @@ const sortOptions = [
   ]
 
 function ItemList() {
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+    const [camisetas, setCamisetas] = useState([]);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    const cargarCamisetas = async () => {
+      const datosCamisetas = await obtenerCamisetas();
+      setCamisetas(datosCamisetas);
+    };
+
+    cargarCamisetas();
+  }, []); // El array vacío asegura que el efecto se ejecute solo una vez al montar el componente
+
+
+
     return (
         <>
         <div className="bg-white">
@@ -290,8 +302,20 @@ function ItemList() {
     
                   {/* Product grid */}
                   <div className="lg:col-span-3">
-                  <Items/>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                      {camisetas.map((camiseta) => (
+                          <div key={camiseta.id} className="border rounded-lg overflow-hidden">
+                          <Link to={`/detalle/${camiseta.id}`}>
+                                  <img src={camiseta.imagen} alt={camiseta.nombre} className="w-full object-cover" />
+                                  <div className="p-4">
+                                      <h3 className="text-lg font-semibold">{camiseta.nombre}</h3>
+                                      <p className="mt-1">${camiseta.precio}</p>
+                                  </div>
+                              </Link>
+                          </div>
+                      ))}
                   </div>
+              </div>
                 </div>
               </section>
             </main>

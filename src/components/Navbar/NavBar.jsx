@@ -3,6 +3,7 @@ import { Dialog, Popover, Tab, Transition } from '@headlessui/react';
 import { Bars3Icon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import './navbar.css';
 import CartWidget from '../Cartwidget/CartWidget';
+import { Link } from 'react-router-dom';
 
 const navigation = {
   categories: [
@@ -295,6 +296,7 @@ function NavBar() {
               </button>
 
               {/* Logo */}
+              <Link to={`/`}>
               <div className="ml-4 flex lg:ml-0">
                 <a href="#">
                   <span className="sr-only">Your Company</span>
@@ -304,7 +306,9 @@ function NavBar() {
                     alt=""
                   />
                 </a>
-              </div>
+              </div> 
+                              </Link>
+             
 
               {/* Flyout menus */}
               <Popover.Group className="hidden lg:ml-8 lg:block lg:self-stretch">
