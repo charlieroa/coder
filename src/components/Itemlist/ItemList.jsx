@@ -1,80 +1,184 @@
-import React, { Fragment, useState, useEffect } from 'react'; // Asegúrate de incluir useEffect aquí
+import React, { Fragment, useState, useEffect } from 'react';
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react';
 import { XMarkIcon, ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
-import Items from '../Items/Items';
-import { obtenerCamisetas } from '../../services/services';
 import { Link } from 'react-router-dom';
+import { obtenerCamisetas } from '../../services/services';
+
+const filters = [
+  {
+    id: 'categoria',
+    name: 'Categoría',
+    options: [
+      { value: 'camiseta', label: 'Camiseta' },
+      { value: 'pantalones', label: 'Pantalones' },
+      { value: 'chamarras', label: 'Chamarras' },
+      { value: 'zapatos', label: 'Zapatos' },
+      // Agrega más categorías según necesites
+    ],
+  },
+  {
+    id: 'color',
+    name: 'Color',
+    options: [
+      { value: 'gris', label: 'Gris' },
+      { value: 'negro', label: 'Negro' },
+      { value: 'rojo', label: 'Rojo' },
+      // Agrega más colores según necesites
+    ],
+  },
+  {
+    id: 'talla',
+    name: 'Talla',
+    options: [
+      { value: 's', label: 'S' },
+      { value: 'm', label: 'M' },
+      { value: 'l', label: 'L' },
+      // Agrega más tallas según necesites
+    ],
+  },
+  // Puedes agregar más secciones de filtro según lo necesites
+];
 
 const sortOptions = [
-    { name: 'Most Popular', href: '#', current: true },
-    { name: 'Best Rating', href: '#', current: false },
-    { name: 'Newest', href: '#', current: false },
-    { name: 'Price: Low to High', href: '#', current: false },
-    { name: 'Price: High to Low', href: '#', current: false },
-  ]
-  const subCategories = [
-    { name: 'Totes', href: '#' },
-    { name: 'Backpacks', href: '#' },
-    { name: 'Travel Bags', href: '#' },
-    { name: 'Hip Bags', href: '#' },
-    { name: 'Laptop Sleeves', href: '#' },
-  ]
-  const filters = [
-    {
-      id: 'color',
-      name: 'Color',
-      options: [
-        { value: 'white', label: 'White', checked: false },
-        { value: 'beige', label: 'Beige', checked: false },
-        { value: 'blue', label: 'Blue', checked: true },
-        { value: 'brown', label: 'Brown', checked: false },
-        { value: 'green', label: 'Green', checked: false },
-        { value: 'purple', label: 'Purple', checked: false },
-      ],
-    },
-    {
-      id: 'category',
-      name: 'Category',
-      options: [
-        { value: 'new-arrivals', label: 'New Arrivals', checked: false },
-        { value: 'sale', label: 'Sale', checked: false },
-        { value: 'travel', label: 'Travel', checked: true },
-        { value: 'organization', label: 'Organization', checked: false },
-        { value: 'accessories', label: 'Accessories', checked: false },
-      ],
-    },
-    {
-      id: 'size',
-      name: 'Size',
-      options: [
-        { value: '2l', label: '2L', checked: false },
-        { value: '6l', label: '6L', checked: false },
-        { value: '12l', label: '12L', checked: false },
-        { value: '18l', label: '18L', checked: false },
-        { value: '20l', label: '20L', checked: false },
-        { value: '40l', label: '40L', checked: true },
-      ],
-    },
-  ]
+  { name: 'Más recientes', href: '#', current: true },
+  { name: 'Precio: bajo a alto', href: '#', current: false },
+  { name: 'Precio: alto a bajo', href: '#', current: false },
+];
 
 function ItemList() {
-    const [camisetas, setCamisetas] = useState([]);
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [camisetas, setCamisetas] = useState([]);
+  const [filtroCategoria, setFiltroCategoria] = useState([]);
+  const [filtroColor, setFiltroColor] = useState('');
+  const [filtroTalla, setFiltroTalla] = useState('');
+
+
+  const handleCategoriaChange = (categoria) => {
+    setFiltroCategoria(prev => {
+      if (prev.includes(categoria)) {
+        return prev.filter(c => c !== categoria); // Correcto para quitar la categoría
+      } else {
+        return [...prev, categoria]; // Correcto para añadir la categoría
+      }
+    });
+  };
 
   useEffect(() => {
-    const cargarCamisetas = async () => {
-      const datosCamisetas = await obtenerCamisetas();
+    const cargarYFiltrarCamisetas = async () => {
+      let datosCamisetas = await obtenerCamisetas();
+      // Filtra por categoría si hay alguna seleccionada
+      if (filtroCategoria.length > 0) {
+        datosCamisetas = datosCamisetas.filter(camiseta => filtroCategoria.includes(camiseta.categoria));
+      }
+      // Filtra por color si hay uno seleccionado
+      if (filtroColor) {
+        datosCamisetas = datosCamisetas.filter(camiseta => camiseta.color === filtroColor);
+      }
+      // Filtra por talla si hay una seleccionada
+      if (filtroTalla) {
+        datosCamisetas = datosCamisetas.filter(camiseta => camiseta.talla === filtroTalla);
+      }
       setCamisetas(datosCamisetas);
     };
-
-    cargarCamisetas();
-  }, []); // El array vacío asegura que el efecto se ejecute solo una vez al montar el componente
-
+  
+    cargarYFiltrarCamisetas();
+  }, [filtroCategoria, filtroColor, filtroTalla]); // Dependencias correctas
+ 
 
 
     return (
         <>
-        <div className="bg-white">
+         <div className="relative overflow-hidden bg-white">
+      <div className="pb-80 pt-16 sm:pb-40 sm:pt-24 lg:pb-48 lg:pt-40">
+        <div className="relative mx-auto max-w-7xl px-4 sm:static sm:px-6 lg:px-8">
+          <div className="sm:max-w-lg">
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            Los estilos de verano finalmente han llegado
+            </h1>
+            <p className="mt-4 text-xl text-gray-500">
+            Este año, nuestra nueva colección de verano es tu refugio perfecto, ¡Prepárate para vivir el verano como nunca antes!
+            </p>
+          </div>
+          <div>
+            <div className="mt-10">
+              {/* Decorative image grid */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none lg:absolute lg:inset-y-0 lg:mx-auto lg:w-full lg:max-w-7xl"
+              >
+                <div className="absolute transform sm:left-1/2 sm:top-0 sm:translate-x-8 lg:left-1/2 lg:top-1/2 lg:-translate-y-1/2 lg:translate-x-8">
+                  <div className="flex items-center space-x-6 lg:space-x-8">
+                    <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
+                      <div className="h-64 w-44 overflow-hidden rounded-lg sm:opacity-0 lg:opacity-100">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-01.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-02.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-03.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-04.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-05.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid flex-shrink-0 grid-cols-1 gap-y-6 lg:gap-y-8">
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-06.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                      <div className="h-64 w-44 overflow-hidden rounded-lg">
+                        <img
+                          src="https://tailwindui.com/img/ecommerce-images/home-page-03-hero-image-tile-07.jpg"
+                          alt=""
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <a
+                href="#irabajo"
+                className="inline-block rounded-md border border-transparent bg-indigo-600 px-8 py-3 text-center font-medium text-white hover:bg-indigo-700"
+              >
+               Ver colección
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+        <div className="bg-white" id='irabajo'>
           <div>
             {/* Mobile filter dialog */}
             <Transition.Root show={mobileFiltersOpen} as={Fragment}>
@@ -117,58 +221,50 @@ function ItemList() {
                       {/* Filters */}
                       <form className="mt-4 border-t border-gray-200">
                         <h3 className="sr-only">Categories</h3>
-                        <ul role="list" className="px-2 py-3 font-medium text-gray-900">
-                          {subCategories.map((category) => (
-                            <li key={category.name}>
-                              <a href={category.href} className="block px-2 py-3">
-                                {category.name}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
+                      
     
-                        {filters.map((section) => (
-                          <Disclosure as="div" key={section.id} className="border-t border-gray-200 px-4 py-6">
-                            {({ open }) => (
-                              <>
-                                <h3 className="-mx-2 -my-3 flow-root">
-                                  <Disclosure.Button className="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
-                                    <span className="font-medium text-gray-900">{section.name}</span>
-                                    <span className="ml-6 flex items-center">
-                                      {open ? (
-                                        <MinusIcon className="h-5 w-5" aria-hidden="true" />
-                                      ) : (
-                                        <PlusIcon className="h-5 w-5" aria-hidden="true" />
-                                      )}
-                                    </span>
-                                  </Disclosure.Button>
-                                </h3>
-                                <Disclosure.Panel className="pt-6">
-                                  <div className="space-y-6">
-                                    {section.options.map((option, optionIdx) => (
-                                      <div key={option.value} className="flex items-center">
-                                        <input
-                                          id={`filter-mobile-${section.id}-${optionIdx}`}
-                                          name={`${section.id}[]`}
-                                          defaultValue={option.value}
-                                          type="checkbox"
-                                          defaultChecked={option.checked}
-                                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <label
-                                          htmlFor={`filter-mobile-${section.id}-${optionIdx}`}
-                                          className="ml-3 min-w-0 flex-1 text-gray-500"
-                                        >
-                                          {option.label}
-                                        </label>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </Disclosure.Panel>
-                              </>
-                            )}
-                          </Disclosure>
+                                    {filters.map((section) => (
+              <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6" defaultOpen={section.name === 'Category'}>
+                {({ open }) => (
+                  <>
+                    <h3 className="-my-3 flow-root">
+                      <Disclosure.Button className="flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500">
+                        <span className="font-medium text-gray-900">{section.name}</span>
+                        <span className="ml-6 flex items-center">
+                          {open ? (
+                            <MinusIcon className="h-5 w-5" aria-hidden="true" />
+                          ) : (
+                            <PlusIcon className="h-5 w-5" aria-hidden="true" />
+                          )}
+                        </span>
+                      </Disclosure.Button>
+                    </h3>
+                    <Disclosure.Panel className="pt-6">
+                      <div className="space-y-4">
+                        {section.options.map((option, optionIdx) => (
+                          <div key={option.value} className="flex items-center">
+                                                        <input
+                                id={`filter-${section.id}-${optionIdx}`}
+                                name={`${section.id}[]`}
+                                value={option.value}
+                                type="checkbox"
+                                onChange={(e) => handleCategoriaChange(e.target.value)}
+                                className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                            <label
+                              htmlFor={`filter-${section.id}-${optionIdx}`}
+                              className="ml-3 text-sm text-gray-600"
+                            >
+                              {option.label}
+                            </label>
+                          </div>
                         ))}
+          </div>
+        </Disclosure.Panel>
+      </>
+    )}
+  </Disclosure>
+))}
                       </form>
                     </Dialog.Panel>
                   </Transition.Child>
@@ -178,19 +274,11 @@ function ItemList() {
     
             <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900">New Arrivals</h1>
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900">Nuevos productos</h1>
     
                 <div className="flex items-center">
                   <Menu as="div" className="relative inline-block text-left">
-                    <div>
-                      <Menu.Button className="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
-                        Sort
-                        <ChevronDownIcon
-                          className="-mr-1 ml-1 h-5 w-5 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                          aria-hidden="true"
-                        />
-                      </Menu.Button>
-                    </div>
+                  
     
                     <Transition
                       as={Fragment}
@@ -248,13 +336,7 @@ function ItemList() {
                   {/* Filters */}
                   <form className="hidden lg:block">
                     <h3 className="sr-only">Categories</h3>
-                    <ul role="list" className="space-y-4 border-b border-gray-200 pb-6 text-sm font-medium text-gray-900">
-                      {subCategories.map((category) => (
-                        <li key={category.name}>
-                          <a href={category.href}>{category.name}</a>
-                        </li>
-                      ))}
-                    </ul>
+                  
     
                     {filters.map((section) => (
                       <Disclosure as="div" key={section.id} className="border-b border-gray-200 py-6">
@@ -308,8 +390,10 @@ function ItemList() {
                           <Link to={`/detalle/${camiseta.id}`}>
                                   <img src={camiseta.imagen} alt={camiseta.nombre} className="w-full object-cover" />
                                   <div className="p-4">
+                                  <label className='text-gray-500'>{camiseta.categoria}</label> 
                                       <h3 className="text-lg font-semibold">{camiseta.nombre}</h3>
-                                      <p className="mt-1">${camiseta.precio}</p>
+                                     
+                                      <h4 className="mt-1">${camiseta.precio}</h4>
                                   </div>
                               </Link>
                           </div>
